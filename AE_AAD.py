@@ -25,9 +25,10 @@ def launch(x_training, oracle, budget, n_query,AE_type=None, latent_dim=32, F = 
 
     b = 0
     while b < budget:
+        print(f"---{b} query presented to the expert---")
 
         #Controllare ciò che sfora
-        _, rec_err, f_rec_err = AEtrain(x_training, y_training, autoencoder)
+        _, rec_err, f_rec_err = AEtrain(x_training, y_training, autoencoder,EP=EP,verb=verb)
         z = np.where(rec_err > f_rec_err, rec_err, f_rec_err)
         z = np.argsort(z)[::-1]
 
@@ -35,13 +36,19 @@ def launch(x_training, oracle, budget, n_query,AE_type=None, latent_dim=32, F = 
         k=0
         #da rivedere
         while k < n_query:
-           if y_training[z[j]] == 0:
+            if y_training[z[j]] == 0:
                y_training[z[j]]=oracle[z[j]]
                k+=1
-           j+=1
-        b+=n_query
+            j+=1
+        if b+n_query>=budget:
+            n_query = budget-b
+            b = budget
+        else:
+            b+=n_query
 
-    _, rec_err, f_rec_err = AEtrain(x_training, y_training, autoencoder)
+    print(f"---{b} query presented to the expert---")
+
+    _, rec_err, f_rec_err = AEtrain(x_training, y_training, autoencoder, EP=EP,verb=verb)
 
     return rec_err
 
@@ -63,7 +70,6 @@ def AEtrain(x_training,y_training,autoencoder=None,latent_dim=32,Lambda_a=None, 
         autoencoder = AE_architectures.PCA_Autoencoder(dim,flat_dim,latent_dim)'''
 
     autoencoder.compile(optimizer='adam', loss=losses.MeanSquaredError())
-
     if Lambda_a is None:
         if np.sum(y_training == -1)!=0:
             Lambda_a = x_training.shape[0]/np.sum(y_training == -1)

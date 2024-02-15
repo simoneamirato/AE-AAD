@@ -11,7 +11,7 @@ def one_vs_all(dig,size):
 
     I_dig = np.where(y_train == dig)[0]
     x_dig = x_train[I_dig]
-    y_dig = [0] * x_dig.shape[0]
+    y_dig = [1] * x_dig.shape[0]
     x_training = x_dig
     id_anomaly_train = np.array([])
     for i in range(10):
@@ -29,7 +29,7 @@ def one_vs_all(dig,size):
             id_anomaly_train = np.concatenate((id_anomaly_train,id_estratti))
             x_training = np.concatenate((x_training, xjj))
 
-    y_nodig = [1] * 9 * size
+    y_nodig = [-1] * 9 * size
     y_training = np.concatenate((y_dig, y_nodig))
     id_anomaly_train = id_anomaly_train.astype(int)
     return x_training,y_training,id_anomaly_train
